@@ -51,7 +51,7 @@ def main():
     count_total = len(checks)
     checks = [c for c in checks if not any(tag in [x['name'] for x in c.tags] for tag in ignore_tags)]
     count_ignored = count_total - len(checks)
-    
+
     servertime = client.servertime()
     count_down = 0
     count_down_warning = 0
@@ -86,16 +86,21 @@ def main():
                 color = check.status
             print("%s | color=%s href=%s" % (check.name, check_colors[color], url))
             print("--" + check.host)
+            _last_outage = client.get_summary_outage(check._id, order="asc")['summary']['states'][-1]
+            _status_since = _last_outage['timeto'] - _last_outage['timefrom']
+            m, s = divmod(_status_since, 60)
+            h, m = divmod(m, 60)
+            print("--%s since %dh %02dm %02ds" % (_last_outage['status'], h, m, s))
             if 'lasttesttime' in check:
                 print("--last test: " + str(servertime - check.lasttesttime) + " sec ago")
             if 'lasterrortime' in check:
                 print("--last error: " + str(servertime - check.lasterrortime) + " sec ago")
             if 'lastresponsetime' in check:
-                print("-- response time: " + str(check.lastresponsetime) + " ms")
+                print("--response time: " + str(check.lastresponsetime) + " ms")
             if 'tags' in check and len(check.tags):
-                print("--tags")
+                print("--tags: | color=black")
                 for tag in check.tags:
-                    print("----" + tag['name'])
+                    print("--" + tag['name'])
     print("Refresh... | refresh=true")
 
 
