@@ -77,35 +77,38 @@ def main():
     print("|image=%s" % (icons[overall_status]))
     print("---")
     print("up/down/paused/ignored: %s/%s/%s/%s|color=black href=https://my.pingdom.com/newchecks/checks" % (count_up, count_down, count_paused, count_ignored))
-    for check in sorted(sorted(checks, key=attrgetter('name')), key=attrgetter('status')):
-        if check.status in ("down", "paused"):
-            url = uptime_url % check._id
-            if any(tag in [x['name'] for x in check.tags] for tag in warning_tags):
-                color = "warning"
-            else:
-                color = check.status
-            print("%s | color=%s href=%s" % (check.name, check_colors[color], url))
-            print("--" + check.host)
-            # find status and duration of current (latest) outage:
-            states = client.get_summary_outage(check._id, order="asc")['summary']['states']
-            if len(states):
-                _last_outage = client.get_summary_outage(check._id, order="asc")['summary']['states'][-1]
-                _status_since = _last_outage['timeto'] - _last_outage['timefrom']
-                m, s = divmod(_status_since, 60)
-                h, m = divmod(m, 60)
-                print("--%s since %dh %02dm %02ds" % (_last_outage['status'], h, m, s))
-            else:
-                print("--unknown since unknown")
-            if 'lasttesttime' in check:
-                print("--last test: " + str(servertime - check.lasttesttime) + " sec ago")
-            if 'lasterrortime' in check:
-                print("--last error: " + str(servertime - check.lasterrortime) + " sec ago")
-            if 'lastresponsetime' in check:
-                print("--response time: " + str(check.lastresponsetime) + " ms")
-            if 'tags' in check and len(check.tags):
-                print("--tags: | color=black")
-                for tag in check.tags:
-                    print("--" + tag['name'])
+    for check in sorted((c for c in checks if c.status == "down"), key=attrgetter('name')):
+        url = uptime_url % check._id
+        if any(tag in [x['name'] for x in check.tags] for tag in warning_tags):
+            color = "warning"
+        else:
+            color = check.status
+        print("%s | color=%s href=%s" % (check.name, check_colors[color], url))
+        print("--" + check.host)
+        # find status and duration of current (latest) outage:
+        states = client.get_summary_outage(check._id, order="asc")['summary']['states']
+        if len(states):
+            _last_outage = client.get_summary_outage(check._id, order="asc")['summary']['states'][-1]
+            _status_since = _last_outage['timeto'] - _last_outage['timefrom']
+            m, s = divmod(_status_since, 60)
+            h, m = divmod(m, 60)
+            print("--%s since %dh %02dm %02ds" % (_last_outage['status'], h, m, s))
+        else:
+            print("--unknown since unknown")
+        if 'lasttesttime' in check:
+            print("--last test: " + str(servertime - check.lasttesttime) + " sec ago")
+        if 'lasterrortime' in check:
+            print("--last error: " + str(servertime - check.lasterrortime) + " sec ago")
+        if 'lastresponsetime' in check:
+            print("--response time: " + str(check.lastresponsetime) + " ms")
+        if 'tags' in check and len(check.tags):
+            print("--tags: | color=black")
+            for tag in check.tags:
+                print("--" + tag['name'])
+
+    for check in sorted((c for c in checks if c.status == "paused"), key=attrgetter('name')):
+        color = check.status
+        print("%s | color=%s href=%s" % (check.name, check_colors[color], url))
     print("Refresh... | refresh=true")
 
 
