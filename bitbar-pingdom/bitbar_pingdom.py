@@ -86,11 +86,16 @@ def main():
                 color = check.status
             print("%s | color=%s href=%s" % (check.name, check_colors[color], url))
             print("--" + check.host)
-            _last_outage = client.get_summary_outage(check._id, order="asc")['summary']['states'][-1]
-            _status_since = _last_outage['timeto'] - _last_outage['timefrom']
-            m, s = divmod(_status_since, 60)
-            h, m = divmod(m, 60)
-            print("--%s since %dh %02dm %02ds" % (_last_outage['status'], h, m, s))
+            # find status and duration of current (latest) outage:
+            states = client.get_summary_outage(check._id, order="asc")['summary']['states']
+            if len(states):
+                _last_outage = client.get_summary_outage(check._id, order="asc")['summary']['states'][-1]
+                _status_since = _last_outage['timeto'] - _last_outage['timefrom']
+                m, s = divmod(_status_since, 60)
+                h, m = divmod(m, 60)
+                print("--%s since %dh %02dm %02ds" % (_last_outage['status'], h, m, s))
+            else:
+                print("--unknown since unknown")
             if 'lasttesttime' in check:
                 print("--last test: " + str(servertime - check.lasttesttime) + " sec ago")
             if 'lasterrortime' in check:
