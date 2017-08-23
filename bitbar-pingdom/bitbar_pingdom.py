@@ -108,6 +108,7 @@ def main():
 
     for check in sorted((c for c in checks if c.status == "paused"), key=attrgetter('name')):
         color = check.status
+        url = uptime_url % check._id
         print("%s | color=%s href=%s" % (check.name, check_colors[color], url))
     print("Refresh... | refresh=true")
 
