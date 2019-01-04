@@ -24,6 +24,8 @@ PLUGIN_DIR="$(dirname "${SELF_PATH}")/bitbar-pingdom"
 cd "${PLUGIN_DIR}" || error_exit "cd ${PLUGIN_DIR}"
 
 if ! test -d env; then
+    # standard macOS does not ship 'virtualenv', so let's add /usr/local/bin to the PATH:
+    export PATH=/usr/local/bin:$PATH
     virtualenv env
     . env/bin/activate
 	pip install configparser
